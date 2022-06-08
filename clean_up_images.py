@@ -1,6 +1,6 @@
 from tkinter import *
 from PIL import Image, ImageTk
-import imagehash, os, cv2
+import imagehash, os, cv2, random
 from tkinter import filedialog
 
 
@@ -31,26 +31,29 @@ def run():
     Label(root, text='Choose an image to keep', font=("Ariel", 25)).grid(row=0, column=0, columnspan=2, pady=20)
     
     for folder in [merge_folder, other_folder]:
-        print(folder)
         for file in os.listdir(folder):
-            print(file)
+            Label(root, text=f'{folder}\{file}', font=("Ariel", 16)).grid(row=1, column=0, columnspan=2, pady=10)
+            root.update()
+                  
             if file == "temp_frame.jpg":
                 continue
             
             if '.aae' in file.lower():
-                os.remove(os.path.dirname(os.path.realpath(__file__)) + '\\' +  folder + '\\' + file)
+                os.remove(f'{folder}\{file}')
                 
             if '.mov' in file.lower() or '.mp4' in file.lower():
                 save_vid_as_img(folder, file)
-                hashed = imagehash.average_hash(Image.open(folder + "\\temp_frame.jpg"))
+                hashed = imagehash.average_hash(Image.open(f'{folder}\{temp_frame.jpg}'))
             else:
-                hashed = imagehash.average_hash(Image.open(folder + '\\' + file))
+                hashed = imagehash.average_hash(Image.open(f'{folder}\{file}'))
                 
             if hashed not in img_map:
                 img_map[hashed] = [folder, file]
+
+                if folder != merge_folder:
+                    merge_file(folder, file, merge_folder)
             else:
                 data = img_map[hashed]
-                print(folder + '\\' + file + '  ==  ' + data[0] + '\\' + data[1])
 
                 runner = 0
                 update_gui(folder, file, data[0], data[1])
@@ -66,22 +69,35 @@ def update_gui(folder_1, file_1, folder_2, file_2):
     img_1 = open_tk_img(folder_1, file_1)
     img_2 = open_tk_img(folder_2, file_2)
 
-    Button(root, image = img_1, command=lambda: del_file(folder_1, file_1)).grid(row=1, column=0, padx=30)
-    Button(root, image = img_2, command=lambda: del_file(folder_2, file_2)).grid(row=1, column=1, padx=30)
+    Button(root, image = img_1, command=lambda: del_file(folder_1, file_1, folder_2, file_2)).grid(row=2, column=0, padx=30)
+    Button(root, image = img_2, command=lambda: del_file(folder_2, file_2, folder_1, file_1)).grid(row=2, column=1, padx=30)
 
-    Label(root, text=f'{folder_1}\\{file_1}').grid(row=2, column=0, pady=20)
-    Label(root, text=f'{folder_2}\\{file_2}').grid(row=2, column=1, pady=20)
+    Label(root, text=f'{folder_1}\\{file_1}').grid(row=3, column=0, pady=20)
+    Label(root, text=f'{folder_2}\\{file_2}').grid(row=3, column=1, pady=20)
 
-    Button(root, text="Keep Both", command=lambda: reset_runner()).grid(row=3, column=0, columnspan=2)
+    Button(root, text="Keep Both", command=lambda: reset_runner()).grid(row=4, column=0, columnspan=2)
 
     while runner == 0:
         root.update()
 
 
-def del_file(folder, file):
+def del_file(del_folder, del_file, keep_folder, keep_file):
     global runner
-    print('deleting ' + folder + '\\' + file)
+    
+    os.remove(f'{del_folder}\{del_file}')
+    if del_folder == merge_folder:
+        merge_file(keep_folder, keep_file, del_folder)
+    
+    print(f'deleting {folder}\{file}')
     runner = 1
+
+
+def merge_file(old_folder, old_file, folder):
+    name = ''.join([x for random.randrange(10) in 16]) + '.jpg'
+    while os.path.exists(f'{folder\name}'):
+        name = ''.join([x for random.randrange(10) in 16]) + '.jpg'
+        
+    cv2.imwrite(f'{folder}\{name}', Image.open(f'{old_folder}\{old_file}'))
 
 
 def reset_runner():
@@ -92,9 +108,9 @@ def reset_runner():
 def open_tk_img(folder, file):
     if '.mov' in file.lower() or '.mp4' in file.lower():
         save_vid_as_img(folder, file)
-        img = Image.open(folder + "\\temp_frame.jpg")
+        img = Image.open(f'{folder}\temp_frame.jpg')
     else:
-        img = Image.open(f'{folder}\\{file}')
+        img = Image.open(f'{folder}\{file}')
         
     img = img.resize((500, 500))
     return ImageTk.PhotoImage(img)
