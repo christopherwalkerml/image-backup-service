@@ -1,6 +1,6 @@
 from tkinter import *
 from PIL import Image, ImageTk
-import imagehash, os, cv2, random
+import imagehash, os, cv2, random, shutil
 from tkinter import filedialog
 
 
@@ -50,9 +50,9 @@ def run():
                 
             if '.mov' in file.lower() or '.mp4' in file.lower():
                 save_vid_as_img(folder, file)
-                hashed = imagehash.average_hash(Image.open(f'{folder}\{temp_frame.jpg}'))
+                hashed = imagehash.average_hash(Image.open(f'{folder}/temp_frame.jpg'))
             else:
-                hashed = imagehash.average_hash(Image.open(f'{folder}\{file}'))
+                hashed = imagehash.average_hash(Image.open(f'{folder}/{file}'))
                 
             if hashed not in img_map:
                 img_map[hashed] = [folder, file]
@@ -107,7 +107,8 @@ def merge_file(old_folder, old_file, folder):
     while os.path.exists(f'{folder}\{name}'):
         name = ''.join([str(random.randrange(10)) for c in range(16)]) + '.jpg'
 
-    Image.open(f'{old_folder}\{old_file}').save(f'{folder}\{name}', 'PNG')
+    file, ext = os.path.splitext(old_file)
+    shutil.move(f'{old_folder}\{old_file}', f'{folder}\{name}{ext}')
 
 
 def reset_runner():
