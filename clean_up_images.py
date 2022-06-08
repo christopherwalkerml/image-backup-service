@@ -7,6 +7,7 @@ from tkinter import filedialog
 img_map = {}
 root = Tk()
 root.geometry("600x160")
+frame = Frame(root)
 runner = 0
 merge_folder = ""
 other_folder = ""
@@ -15,24 +16,30 @@ other_folder = ""
 def run():
     global runner
 
-    Label(root, text="choose folder to merge into: ").grid(row=0, column=0)
-    Button(root, text="Choose", command=get_merge_directory).grid(row=1, column=0)
-    Label(root, text="choose folder to get images from: ").grid(row=2, column=0)
-    Button(root, text="Choose", command=get_other_directory).grid(row=3, column=0)
-    Button(root, text="Continue", command=start_program).grid(row=4, column=0, pady=30)
+    Label(frame, text="choose folder to merge into: ").grid(row=0, column=0)
+    Button(frame, text="Choose", command=get_merge_directory).grid(row=1, column=0)
+    Label(frame, text="choose folder to get images from: ").grid(row=2, column=0)
+    Button(frame, text="Choose", command=get_other_directory).grid(row=3, column=0)
+    Button(frame, text="Continue", command=start_program).grid(row=4, column=0, pady=30)
+    frame.grid()
 
     while not runner:
         root.update()
 
-    root.grid_remove()
+    frame.destroy()
 
-    root.geometry("1140x700")
+    root.geometry("1140x750")
     
     Label(root, text='Choose an image to keep', font=("Ariel", 25)).grid(row=0, column=0, columnspan=2, pady=20)
+    directory_label = Label(root, text='\\', font=("Ariel", 16))
+    directory_label.grid(row=1, column=0, columnspan=2, pady=10)
     
     for folder in [merge_folder, other_folder]:
         for file in os.listdir(folder):
-            Label(root, text=f'{folder}\{file}', font=("Ariel", 16)).grid(row=1, column=0, columnspan=2, pady=10)
+            directory_label.destroy()
+            directory_label = Label(root, text=f'{folder}/{file}', font=("Ariel", 16))
+            directory_label.grid(row=1, column=0, columnspan=2, pady=10)
+            
             root.update()
                   
             if file == "temp_frame.jpg":
@@ -69,16 +76,20 @@ def update_gui(folder_1, file_1, folder_2, file_2):
     img_1 = open_tk_img(folder_1, file_1)
     img_2 = open_tk_img(folder_2, file_2)
 
-    Button(root, image = img_1, command=lambda: del_file(folder_1, file_1, folder_2, file_2)).grid(row=2, column=0, padx=30)
-    Button(root, image = img_2, command=lambda: del_file(folder_2, file_2, folder_1, file_1)).grid(row=2, column=1, padx=30)
+    Button(root, image = img_1, command=lambda: del_file(folder_2, file_2, folder_1, file_1)).grid(row=2, column=0, padx=30)
+    Button(root, image = img_2, command=lambda: del_file(folder_1, file_1, folder_2, file_2)).grid(row=2, column=1, padx=30)
 
-    Label(root, text=f'{folder_1}\\{file_1}').grid(row=3, column=0, pady=20)
-    Label(root, text=f'{folder_2}\\{file_2}').grid(row=3, column=1, pady=20)
+    l1 = Label(root, text=f'{folder_1}/{file_1}')
+    l1.grid(row=3, column=0, pady=20)
+    l2 = Label(root, text=f'{folder_2}/{file_2}')
+    l2.grid(row=3, column=1, pady=20)
 
     Button(root, text="Keep Both", command=lambda: reset_runner()).grid(row=4, column=0, columnspan=2)
 
     while runner == 0:
         root.update()
+    l1.destroy()
+    l2.destroy()
 
 
 def del_file(del_folder, del_file, keep_folder, keep_file):
@@ -87,17 +98,16 @@ def del_file(del_folder, del_file, keep_folder, keep_file):
     os.remove(f'{del_folder}\{del_file}')
     if del_folder == merge_folder:
         merge_file(keep_folder, keep_file, del_folder)
-    
-    print(f'deleting {folder}\{file}')
+
     runner = 1
 
 
 def merge_file(old_folder, old_file, folder):
-    name = ''.join([x for random.randrange(10) in 16]) + '.jpg'
-    while os.path.exists(f'{folder\name}'):
-        name = ''.join([x for random.randrange(10) in 16]) + '.jpg'
-        
-    cv2.imwrite(f'{folder}\{name}', Image.open(f'{old_folder}\{old_file}'))
+    name = ''.join([str(random.randrange(10)) for x in range(16)]) + '.jpg'
+    while os.path.exists(f'{folder}\{name}'):
+        name = ''.join([str(random.randrange(10)) for c in range(16)]) + '.jpg'
+
+    Image.open(f'{old_folder}\{old_file}').save(f'{folder}\{name}', 'PNG')
 
 
 def reset_runner():
@@ -119,15 +129,16 @@ def open_tk_img(folder, file):
 def get_merge_directory():
     global merge_folder
     merge_folder = filedialog.askdirectory()
-    Label(root, text=f'({merge_folder})').grid(row=1, column=1)
+    Label(frame, text=f'({merge_folder})').grid(row=1, column=1)
 
 def get_other_directory():
     global other_folder, runner
     other_folder = filedialog.askdirectory()
-    Label(root, text=f'({other_folder})').grid(row=3, column=1)
+    Label(frame, text=f'({other_folder})').grid(row=3, column=1)
 
 
 def start_program():
+    global runner
     runner = 1
     
     
