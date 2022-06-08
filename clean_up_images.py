@@ -1,20 +1,36 @@
 from tkinter import *
 from PIL import Image, ImageTk
-import imagehash, os, cv2, tkinter
+import imagehash, os, cv2
+from tkinter import filedialog
 
 
 img_map = {}
 root = Tk()
-root.geometry("1140x700")
+root.geometry("600x160")
 runner = 0
-
-grid = [[None, None]]
+merge_folder = ""
+other_folder = ""
+    
 
 def run():
     global runner
+
+    Label(root, text="choose folder to merge into: ").grid(row=0, column=0)
+    Button(root, text="Choose", command=get_merge_directory).grid(row=1, column=0)
+    Label(root, text="choose folder to get images from: ").grid(row=2, column=0)
+    Button(root, text="Choose", command=get_other_directory).grid(row=3, column=0)
+    Button(root, text="Continue", command=start_program).grid(row=4, column=0, pady=30)
+
+    while not runner:
+        root.update()
+
+    root.grid_remove()
+
+    root.geometry("1140x700")
+    
     Label(root, text='Choose an image to keep', font=("Ariel", 25)).grid(row=0, column=0, columnspan=2, pady=20)
     
-    for folder in ['Iphone 6 - 12-14-2020']:
+    for folder in [merge_folder, other_folder]:
         print(folder)
         for file in os.listdir(folder):
             print(file)
@@ -82,6 +98,21 @@ def open_tk_img(folder, file):
         
     img = img.resize((500, 500))
     return ImageTk.PhotoImage(img)
+
+
+def get_merge_directory():
+    global merge_folder
+    merge_folder = filedialog.askdirectory()
+    Label(root, text=f'({merge_folder})').grid(row=1, column=1)
+
+def get_other_directory():
+    global other_folder, runner
+    other_folder = filedialog.askdirectory()
+    Label(root, text=f'({other_folder})').grid(row=3, column=1)
+
+
+def start_program():
+    runner = 1
     
     
 run()
